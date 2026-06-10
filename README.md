@@ -137,14 +137,16 @@ Recommended workflow:
 
 ## Reference Architecture
 
-This repository is a leaf MCP server in a broader enterprise MCP pattern. A high-level reference design is shown below, where `CoCounsel` acts as the principal MCP client and domain orchestration servers abstract their domain-specific MCP servers.
+This repository is a leaf MCP server in a broader enterprise MCP pattern. In the target model, `CoCounsel` acts as the principal MCP client, determines which domain boundaries are relevant and allowed for the current user, and then engages the appropriate domain orchestration MCP servers.
 
 ```mermaid
 flowchart TD
-  A[CoCounsel<br/>Principal MCP Client]
+  U[User Request and Persona]
+  U --> A[CoCounsel<br/>Principal MCP Client]
 
-  A --> B[HR Domain MCP Orchestration]
-  A --> C[Cloud Audit Suite MCP Orchestration]
+  A --> P[Persona and Policy Check]
+  P --> B[HR Domain MCP Orchestration]
+  P --> C[Cloud Audit Suite MCP Orchestration]
 
   B --> B1[Leave Management MCP]
   B --> B2[HR Query MCP]
@@ -165,10 +167,24 @@ flowchart TD
 
 In this model:
 
-- `CoCounsel` operates at the cross-domain layer
-- domain orchestration servers expose business-oriented tool surfaces
+- `CoCounsel` operates at the cross-domain layer and decides which domains should be enabled for the current request
+- domain orchestration MCP servers define domain boundaries, high-level domain skill context, and access-scoped capability exposure
+- domain orchestration MCP servers may re-expose leaf tools directly, add light curation, or add a small number of domain-native abstractions
 - leaf MCP servers encapsulate focused systems and capabilities
 - this leave management server fits under the HR domain orchestration layer
+
+Example access model:
+
+- an internal HR user may be allowed to use both the HR domain orchestration MCP and the Cloud Audit Suite orchestration MCP
+- an external auditor or client may only be allowed to use the Cloud Audit Suite orchestration MCP
+- if the request does not match any enabled domain, `CoCounsel` can answer directly without invoking a domain MCP
+
+Why the orchestration layer exists:
+
+- to establish a domain boundary rather than exposing every leaf MCP globally
+- to carry domain-level skill or semantic context that helps `CoCounsel` choose the correct domain
+- to enable persona-aware access control at the domain level
+- to leave room for future domain workflows without forcing them into the principal client
 
 ## Example Scenarios
 
