@@ -135,6 +135,41 @@ Recommended workflow:
 - `dev` uses `tsx` for a simpler local ESM TypeScript workflow
 - `build` outputs compiled files to `dist/`
 
+## Reference Architecture
+
+This repository is a leaf MCP server in a broader enterprise MCP pattern. A high-level reference design is shown below, where `CoCounsel` acts as the principal MCP client and domain orchestration servers abstract their domain-specific MCP servers.
+
+```mermaid
+flowchart TD
+  A[CoCounsel<br/>Principal MCP Client]
+
+  A --> B[HR Domain MCP Orchestration]
+  A --> C[Cloud Audit Suite MCP Orchestration]
+
+  B --> B1[Leave Management MCP]
+  B --> B2[HR Query MCP]
+  B --> B3[Payroll MCP]
+
+  C --> C1[Engagement Manager MCP]
+  C --> C2[Guided Assurance MCP]
+  C --> C3[Other Audit Domain MCPs]
+
+  B1 --> S1[HR or Leave Systems]
+  B2 --> S2[HR Data Sources]
+  B3 --> S3[Payroll Systems]
+
+  C1 --> S4[Engagement Systems]
+  C2 --> S5[Assurance Frameworks and Evidence Sources]
+  C3 --> S6[Other Audit Systems]
+```
+
+In this model:
+
+- `CoCounsel` operates at the cross-domain layer
+- domain orchestration servers expose business-oriented tool surfaces
+- leaf MCP servers encapsulate focused systems and capabilities
+- this leave management server fits under the HR domain orchestration layer
+
 ## Example Scenarios
 
 ### Employee flow
