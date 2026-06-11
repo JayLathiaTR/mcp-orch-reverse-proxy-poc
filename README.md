@@ -8,7 +8,8 @@ This demo models a reverse-proxy MCP orchestration pattern.
 - For this demo, `Claude Desktop` plays that role and connects directly to two domain MCP servers.
 - Each domain MCP server proxies only its own leaf MCP servers.
 - Each domain MCP server can also coordinate cross-leaf MCP work and return one business-level response.
-- Leaf MCP servers stay focused on one system boundary and one tool family.
+- Each domain MCP acts as an MCP server to the client and an MCP client to downstream integrations.
+- Leaf integrations can be MCP servers, HTTP services, agents, or mixed adapters.
 
 ```mermaid
 flowchart LR
@@ -17,11 +18,11 @@ flowchart LR
   C --> HR[HR Domain MCP]
   C --> CA[Cloud Audit Domain MCP]
 
-  HR --> LM[Leave Management MCP]
-  HR --> PY[Payroll MCP]
+  HR --> LM[Leave Management MCP*]
+  HR --> PY[Payroll MCP*]
 
-  CA --> EM[Engagement Manager MCP]
-  CA --> GA[Guided Assurance MCP]
+  CA --> EM[Engagement Manager MCP*]
+  CA --> GA[Guided Assurance MCP*]
 
   LM --> S1[Leave / HR data]
   PY --> S2[Payroll data]
@@ -29,12 +30,35 @@ flowchart LR
   GA --> S4[Assurance data]
 ```
 
+`*` **`In a real implementation, these downstream integrations could be MCP servers, HTTP services, agents, or a mixed set of MCP, HTTP, and SDK calls.`**
+
+#### Job of domain MCP
+---
+1. Acting Server to CoCounsel Client
+```ts
+registerTool("list_all_engagements", async (args) => {
+  return leafClients.engagementManager.callTool("list_all_engagements", args);
+});
+```
+
+2. Acting Client to the downstream leaf transport
+```ts
+private readonly client = new Client({
+  name: "cloud-audit-suite-orchestrator-mcp",
+  version: "1.0.0",
+}, {
+  capabilities: {},
+});
+
+this.client.connect(transport)
+```
+
 Why this architecture:
 
 - smaller leaf MCPs are easier to own, change, and validate
 - domain MCPs give one clean entry point per business domain
 - the client does not need to understand every leaf server directly
-- **`the domain layer can combine relevant leaf responses into one domain-level answer, making the domain more powerful then just reverse proxy`**
+- the domain layer can combine relevant leaf responses into one domain-level answer
 - transport boundaries stay explicit, which is closer to real enterprise integration
 
 Pros of the reverse-proxy MCP orchestration model:
