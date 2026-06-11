@@ -34,7 +34,7 @@ Why this architecture:
 - smaller leaf MCPs are easier to own, change, and validate
 - domain MCPs give one clean entry point per business domain
 - the client does not need to understand every leaf server directly
-- **the domain layer can combine relevant leaf responses into one domain-level answer, making the domain more powerful then just reverse proxy**
+- **`the domain layer can combine relevant leaf responses into one domain-level answer, making the domain more powerful then just reverse proxy`**
 - transport boundaries stay explicit, which is closer to real enterprise integration
 
 Pros of the reverse-proxy MCP orchestration model:
