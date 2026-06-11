@@ -69,7 +69,7 @@ Pros of the reverse-proxy MCP orchestration model:
 - easier leaf replacement or expansion without changing the client model
 - more realistic handling of partial data overlap across systems
 
-## Developers
+## Developers Note
 
 Current packages:
 
