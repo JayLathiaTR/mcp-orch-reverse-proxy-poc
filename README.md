@@ -32,9 +32,9 @@ flowchart LR
 
 `*` **`In a real implementation, these downstream integrations could be MCP servers, HTTP services, agents, or a mixed set of MCP, HTTP, and SDK calls.`**
 
-#### Job of domain MCP
+#### Job of domain MCP (server-facing northbound and client-facing southbound)
 ---
-1. Acting Server to CoCounsel Client
+1. Acting Server to Principal CoCounsel Client
 ```ts
 registerTool("list_all_engagements", async (args) => {
   return leafClients.engagementManager.callTool("list_all_engagements", args);
