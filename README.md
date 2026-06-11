@@ -91,13 +91,13 @@ Claude Desktop demo wiring:
     "hr-domain-orchestrator-mcp": {
       "command": "node",
       "args": [
-        "C:/path/to/LeaveManagement/apps/hr-domain-orchestrator-mcp/dist/index.js"
+        "C:/path/to/mcp-orch-reverse-proxy-poc/apps/hr-domain-orchestrator-mcp/dist/index.js"
       ]
     },
     "cloud-audit-suite-orchestrator-mcp": {
       "command": "node",
       "args": [
-        "C:/path/to/LeaveManagement/apps/cloud-audit-suite-orchestrator-mcp/dist/index.js"
+        "C:/path/to/mcp-orch-reverse-proxy-poc/apps/cloud-audit-suite-orchestrator-mcp/dist/index.js"
       ]
     }
   }
