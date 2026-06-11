@@ -1,0 +1,22 @@
+{
+  "name": "cloud-audit-suite-orchestrator-mcp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix ../../leaf-servers/engagement-manager-mcp run build && npm --prefix ../../leaf-servers/guided-assurance-mcp run build && tsc",
+    "check": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "description": "Domain orchestration MCP for cloud audit suite capabilities",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,18 +1,20 @@
 {
   "name": "leavemanagement",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "check": "tsc --noEmit",
-    "start": "node dist/index.js",
-    "dev": "tsx src/index.ts"
+    "build:hr": "npm --prefix ./leaf-servers/leave-management-mcp run build && npm --prefix ./leaf-servers/payroll-mcp run build && node ./node_modules/typescript/bin/tsc -p ./apps/hr-domain-orchestrator-mcp/tsconfig.json",
+    "build:audit": "npm --prefix ./leaf-servers/engagement-manager-mcp run build && npm --prefix ./leaf-servers/guided-assurance-mcp run build && node ./node_modules/typescript/bin/tsc -p ./apps/cloud-audit-suite-orchestrator-mcp/tsconfig.json",
+    "build": "npm run build:hr && npm run build:audit",
+    "check:hr": "node ./node_modules/typescript/bin/tsc -p ./apps/hr-domain-orchestrator-mcp/tsconfig.json --noEmit",
+    "check:audit": "node ./node_modules/typescript/bin/tsc -p ./apps/cloud-audit-suite-orchestrator-mcp/tsconfig.json --noEmit",
+    "check": "npm run check:hr && npm run check:audit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Workspace shell for the LeaveManagement MCP domain and leaf packages",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.4.3"

@@ -1,226 +1,88 @@
-# MCP Leave Management
+# MCP Reverse-Proxy Orchestration POC
 
-A local Model Context Protocol (MCP) server that simulates a leave management workflow for employees and managers. The server is designed for local demos, connector testing, and iterative MCP tool development with Claude Desktop.
+## Architecture Overview
 
-It supports employee discovery, leave balance checks, leave application, manager review flows, full approvals, partial approvals, and rejections against a seeded in-memory dataset.
+This demo models a reverse-proxy MCP orchestration pattern.
 
-## Features
+- `CoCounsel` is the intended principal MCP client in the target enterprise model.
+- For this demo, `Claude Desktop` plays that role and connects directly to two domain MCP servers.
+- Each domain MCP server proxies only its own leaf MCP servers.
+- Each domain MCP server can also coordinate cross-leaf MCP work and return one business-level response.
+- Leaf MCP servers stay focused on one system boundary and one tool family.
 
-- MCP server over stdio using the official `@modelcontextprotocol/sdk`
-- Employee and manager directory tools
-- Leave application with date validation and balance checks
-- Manager approval workflow scoped to the manager's own team
-- Partial approval support with separate approved and rejected day counts
-- Automatic leave balance deduction for approved days
-- Seeded demo data across Engineering, Finance, and HR
+```mermaid
+flowchart LR
+  C[Claude Desktop<br/>Demo stand-in for CoCounsel]
 
-## Tool Catalog
+  C --> HR[HR Domain MCP]
+  C --> CA[Cloud Audit Domain MCP]
 
-The server currently exposes these MCP tools:
+  HR --> LM[Leave Management MCP]
+  HR --> PY[Payroll MCP]
 
-| Tool | Purpose |
-| --- | --- |
-| `ping` | Health check for the MCP server |
-| `list_all_employees` | List all people in the system, including managers with a position flag |
-| `list_all_managers` | List managers only |
-| `check_leave_balance` | Show available Annual, Sick, and Unpaid leave for a person |
-| `apply_leave` | Submit a new leave request after validating dates and balance |
-| `list_employee_leaves` | Show all leave requests for a specific person |
-| `list_pending_approvals` | Show pending leave requests for a manager's direct team |
-| `approve_leave` | Fully approve a pending leave request |
-| `partial_approve_leave` | Approve part of a pending leave request and reject the remainder |
-| `reject_leave` | Fully reject a pending leave request |
+  CA --> EM[Engagement Manager MCP]
+  CA --> GA[Guided Assurance MCP]
 
-## Approval Rules
-
-- Leave duration is calculated as inclusive days between `startDate` and `endDate`
-- Dates must be in `YYYY-MM-DD` format
-- End date cannot be earlier than start date
-- Employees cannot submit leave beyond their available balance
-- Managers cannot approve more leave days than the employee currently has available
-- Managers can only review leave requests for employees who report to them directly
-- Partial approvals deduct only the approved number of days from the employee's balance
-
-## Seed Data
-
-The demo dataset includes:
-
-- 14 employees
-- 7 managers
-- Departments: Engineering, Finance, HR
-- Sample names from multiple regions including Indian and Mexican names for demo variety
-
-All data is stored in-memory in [src/data.ts](/c:/GitHub/AA_POC_Projects/MCP-Servers-POC/LeaveManagement/src/data.ts). Restarting the server resets all leave requests and balances back to the seeded state.
-
-## Project Structure
-
-```text
-.
-├── src/
-│   ├── data.ts
-│   └── index.ts
-├── package.json
-├── package-lock.json
-├── tsconfig.json
-└── README.md
+  LM --> S1[Leave / HR data]
+  PY --> S2[Payroll data]
+  EM --> S3[Engagement data]
+  GA --> S4[Assurance data]
 ```
 
-## Prerequisites
+Why this architecture:
 
-- Node.js 18 or later
-- npm
-- Claude Desktop, if you want to test the server as an MCP connector
+- smaller leaf MCPs are easier to own, change, and validate
+- domain MCPs give one clean entry point per business domain
+- the client does not need to understand every leaf server directly
+- **the domain layer can combine relevant leaf responses into one domain-level answer, making the domain more powerful then just reverse proxy**
+- transport boundaries stay explicit, which is closer to real enterprise integration
 
-## Local Setup
+Pros of the reverse-proxy MCP orchestration model:
 
-Install dependencies:
+- better separation of concerns between client, domain, and system-level tools
+- easier policy and access control at the domain boundary
+- easier onboarding because users connect to a small number of domain servers
+- easier leaf replacement or expansion without changing the client model
+- more realistic handling of partial data overlap across systems
 
-```bash
-npm install
-```
+## Developers
 
-Run a type check:
+Current packages:
 
-```bash
-npm run check
-```
+- `apps/hr-domain-orchestrator-mcp` for the HR domain connector
+- `apps/cloud-audit-suite-orchestrator-mcp` for the Cloud Audit domain connector
+- `leaf-servers/leave-management-mcp` and `leaf-servers/payroll-mcp` under HR
+- `leaf-servers/engagement-manager-mcp` and `leaf-servers/guided-assurance-mcp` under Cloud Audit
 
-Build the server:
+Root scripts:
 
-```bash
-npm run build
-```
+- `npm run build` builds both domain stacks
+- `npm run check` typechecks both domain stacks
 
-Run the compiled server:
-
-```bash
-npm start
-```
-
-Run the server directly from TypeScript during development:
-
-```bash
-npm run dev
-```
-
-## Claude Desktop Configuration
-
-This server uses stdio transport. Claude Desktop should launch the process for you. You do not need to start the server manually before connecting it.
-
-Example Claude Desktop MCP configuration:
+Claude Desktop demo wiring:
 
 ```json
 {
   "mcpServers": {
-    "leave-management": {
+    "hr-domain-orchestrator-mcp": {
       "command": "node",
       "args": [
-        "C:/path/to/mcp-leave-management/dist/index.js"
+        "C:/path/to/LeaveManagement/apps/hr-domain-orchestrator-mcp/dist/index.js"
+      ]
+    },
+    "cloud-audit-suite-orchestrator-mcp": {
+      "command": "node",
+      "args": [
+        "C:/path/to/LeaveManagement/apps/cloud-audit-suite-orchestrator-mcp/dist/index.js"
       ]
     }
   }
 }
 ```
 
-Recommended workflow:
+Developer workflow:
 
-1. Run `npm run build`
-2. Point Claude Desktop to `node` plus `dist/index.js`
-3. Reconnect Claude Desktop after each rebuild when you want it to load the latest server code
-
-## Development Notes
-
-- The project is configured as an ESM package with `type: module`
-- MCP SDK imports use explicit `.js` subpaths for correct runtime resolution in Node ESM
-- `dev` uses `tsx` for a simpler local ESM TypeScript workflow
-- `build` outputs compiled files to `dist/`
-
-## Reference Architecture
-
-This repository is a leaf MCP server in a broader enterprise MCP pattern. In the target model, `CoCounsel` acts as the principal MCP client, determines which domain boundaries are relevant and allowed for the current user, and then engages the appropriate domain orchestration MCP servers.
-
-```mermaid
-flowchart TD
-  U[User Request and Persona]
-  U --> A[CoCounsel<br/>Principal MCP Client]
-
-  A --> P[Persona and Policy Check]
-  P --> B[HR Domain MCP Orchestration]
-  P --> C[Cloud Audit Suite MCP Orchestration]
-
-  B --> B1[Leave Management MCP]
-  B --> B2[HR Query MCP]
-  B --> B3[Payroll MCP]
-
-  C --> C1[Engagement Manager MCP]
-  C --> C2[Guided Assurance MCP]
-  C --> C3[Other Audit Domain MCPs]
-
-  B1 --> S1[HR or Leave Systems]
-  B2 --> S2[HR Data Sources]
-  B3 --> S3[Payroll Systems]
-
-  C1 --> S4[Engagement Systems]
-  C2 --> S5[Assurance Frameworks and Evidence Sources]
-  C3 --> S6[Other Audit Systems]
-```
-
-In this model:
-
-- `CoCounsel` operates at the cross-domain layer and decides which domains should be enabled for the current request
-- domain orchestration MCP servers define domain boundaries, high-level domain skill context, and access-scoped capability exposure
-- domain orchestration MCP servers may re-expose leaf tools directly, add light curation, or add a small number of domain-native abstractions
-- leaf MCP servers encapsulate focused systems and capabilities
-- this leave management server fits under the HR domain orchestration layer
-
-Example access model:
-
-- an internal HR user may be allowed to use both the HR domain orchestration MCP and the Cloud Audit Suite orchestration MCP
-- an external auditor or client may only be allowed to use the Cloud Audit Suite orchestration MCP
-- if the request does not match any enabled domain, `CoCounsel` can answer directly without invoking a domain MCP
-
-Why the orchestration layer exists:
-
-- to establish a domain boundary rather than exposing every leaf MCP globally
-- to carry domain-level skill or semantic context that helps `CoCounsel` choose the correct domain
-- to enable persona-aware access control at the domain level
-- to leave room for future domain workflows without forcing them into the principal client
-
-## Example Scenarios
-
-### Employee flow
-
-1. Call `list_all_employees`
-2. Call `check_leave_balance` for a selected employee
-3. Call `apply_leave`
-4. Call `list_employee_leaves` to verify the request is pending
-
-### Manager flow
-
-1. Call `list_all_managers`
-2. Call `list_pending_approvals` for a manager
-3. Call `approve_leave`, `partial_approve_leave`, or `reject_leave`
-4. Call `check_leave_balance` again to verify the resulting balance
-
-## Limitations
-
-- Data is in-memory only and is reset when the server restarts
-- No persistence or database integration yet
-- No authentication or role-based access beyond seeded manager-to-employee mappings
-- Partial approvals are day-count based, not date-specific within a leave range
-
-## Scripts
-
-| Script | Description |
-| --- | --- |
-| `npm run dev` | Run the MCP server from TypeScript using `tsx` |
-| `npm run check` | Run TypeScript type checking without emitting output |
-| `npm run build` | Compile the server to `dist/` |
-| `npm start` | Run the compiled server from `dist/index.js` |
-
-## Tech Stack
-
-- TypeScript
-- Node.js
-- `@modelcontextprotocol/sdk`
-- `zod`
+1. Run `npm install` at the repo root.
+2. Run `npm run build` at the repo root.
+3. Point Claude Desktop to the two domain MCP servers.
+4. Rebuild after code changes before reconnecting the client.

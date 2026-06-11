@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { employees, leaveRequests, LeaveType, managers } from "./data.js";
 import type { Employee, LeaveRequest } from "./data.js";
 import z from "zod";
+import { getEmployeeManagerText, getEmployeeProfileText } from "./service.js";
 
 const server = new McpServer({
   name: "leave-management",
@@ -141,6 +142,26 @@ server.registerTool("check_leave_balance", {
     content: [{ type: "text", text: `Leave balance for ${emp.name}:\n- Annual: ${Annual} days\n- Sick: ${Sick} days\n- Unpaid: ${Unpaid} days` }],
   };
 });
+
+server.registerTool("get_employee_manager", {
+  title: "Get Employee Manager",
+  description: "Get the directly assigned manager for an employee",
+  inputSchema: {
+    employeeName: z.string().describe("Full name of the employee"),
+  },
+}, async ({ employeeName }) => ({
+  content: [{ type: "text", text: getEmployeeManagerText(employeeName) }],
+}));
+
+server.registerTool("get_employee_profile", {
+  title: "Get Employee Profile",
+  description: "Get the employee profile including manager ID and manager name",
+  inputSchema: {
+    employeeName: z.string().describe("Full name of the employee"),
+  },
+}, async ({ employeeName }) => ({
+  content: [{ type: "text", text: getEmployeeProfileText(employeeName) }],
+}));
 
 server.registerTool("apply_leave", {
   title: "Apply for Leave",
