@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/apps/">
+    <Project Path="apps/CloudAuditSuiteOrchestratorMcp/CloudAuditSuiteOrchestratorMcp.csproj" />
+    <Project Path="apps/HrDomainOrchestratorMcp/HrDomainOrchestratorMcp.csproj" />
+  </Folder>
+  <Folder Name="/leaf-servers/">
+    <Project Path="leaf-servers/EngagementManagerMcp/EngagementManagerMcp.csproj" />
+    <Project Path="leaf-servers/GuidedAssuranceMcp/GuidedAssuranceMcp.csproj" />
+    <Project Path="leaf-servers/LeaveManagementMcp/LeaveManagementMcp.csproj" />
+    <Project Path="leaf-servers/PayrollMcp/PayrollMcp.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/McpOrch.Common/McpOrch.Common.csproj" />
+  </Folder>
+</Solution>
